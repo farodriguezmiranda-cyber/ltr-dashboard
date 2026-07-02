@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10-Month DAT LTR Outlook — TA Services</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1b26; --surface: #132031; --border: #1f3348;
+    --accent: #cc2b2b; --up: #22c55e; --down: #cc2b2b;
+    --warn: #f59e0b; --warn-bg: rgba(245,158,11,0.08); --warn-border: rgba(245,158,11,0.35);
+    --muted: #8aafc2; --text: #f5f9fc; --text-dim: #b8d0df;
+    --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+  header { border-bottom: 2px solid var(--accent); padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; background: var(--surface); }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .header-logo { display: flex; align-items: center; gap: 10px; padding-right: 20px; border-right: 1px solid var(--border); }
+  .header-logo-text { display: flex; flex-direction: column; }
+  .header-logo-ta { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1; }
+  .header-logo-ta span { color: var(--accent); }
+  .header-logo-services { font-family: var(--mono); font-size: 8px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-top: 1px; border-top: 1.5px solid var(--accent); padding-top: 2px; }
+  .header-titles { display: flex; flex-direction: column; gap: 3px; }
+  header h1 { font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); }
+  .header-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); letter-spacing: 0.05em; }
+  .header-tag { font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px solid var(--border); padding: 3px 8px; border-radius: 3px; letter-spacing: 0.08em; }
+  main { padding: 24px 32px; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ANOMALY BANNER — prominent, above everything */
+  .anomaly-banner { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: 6px; padding: 16px 20px; display: none; flex-direction: column; gap: 10px; }
+  .anomaly-banner.visible { display: flex; }
+  .anomaly-header { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--warn); }
+  .anomaly-lead { font-size: 13px; color: var(--text); font-weight: 500; }
+  .anomaly-items { display: flex; flex-direction: column; gap: 5px; padding-top: 4px; border-top: 1px solid var(--warn-border); }
+  .anomaly-item { font-size: 12px; color: var(--text-dim); line-height: 1.6; padding-left: 16px; }
+
+  /* CARDS */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .card-value { font-family: var(--mono); font-size: 28px; font-weight: 600; line-height: 1; color: var(--text); }
+  .card-value.up { color: var(--up); }
+  .card-value.down { color: var(--down); }
+  .card-value.neutral { color: var(--text-dim); }
+  .card-value.accent { color: var(--accent); font-size: 20px; margin-top: 4px; }
+  .card-value.warn { color: var(--warn); font-size: 20px; margin-top: 4px; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .confidence-bar { display: flex; gap: 4px; margin-top: 4px; }
+  .conf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .conf-dot.filled { background: var(--accent); }
+  .conf-dot.filled-warn { background: var(--warn); }
+
+  .conf-explain { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 18px; font-size: 11px; color: var(--muted); line-height: 1.7; }
+
+  /* CHART */
+  .chart-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 24px; }
+  .panel-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .panel-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .panel-desc { font-size: 13px; color: var(--text-dim); }
+  .legend { display: flex; gap: 20px; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+  .chart-wrap { position: relative; height: 380px; }
+
+  /* LIVE FORECAST BAR */
+  .live-forecast-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-top: 12px; }
+  .lf-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .lf-value { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--text); margin-top: 4px; }
+  .lf-divider { width: 1px; min-height: 40px; background: var(--border); align-self: stretch; }
+  .lf-note { font-size: 11px; color: var(--muted); line-height: 1.6; max-width: 360px; font-style: italic; }
+  .lf-disclaimer { font-size: 10px; color: var(--muted); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-family: var(--mono); letter-spacing: 0.03em; }
+
+  /* BOTTOM ROW */
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .why-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
+  .input-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .input-table th { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 0 10px 0; border-bottom: 1px solid var(--border); }
+  .input-table td { padding: 10px 0; font-size: 12px; color: var(--text-dim); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .input-table td:first-child { color: var(--text); font-size: 13px; }
+  .contrib-wrap { display: flex; align-items: center; gap: 8px; }
+  .contrib-bar { height: 4px; border-radius: 2px; min-width: 4px; }
+  .contrib-bar.positive { background: var(--up); }
+  .contrib-bar.negative { background: var(--down); }
+  .contrib-bar.neutral { background: var(--muted); }
+  .contrib-label { font-size: 11px; font-family: var(--mono); }
+  .contrib-label.positive { color: var(--up); }
+  .contrib-label.negative { color: var(--down); }
+  .contrib-label.neutral { color: var(--muted); }
+
+  .val-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 20px; }
+  .val-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .val-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; }
+  .val-stat-num { font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; }
+  .val-stat-label { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+  .val-note { font-size: 11px; color: var(--muted); margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); line-height: 1.6; font-style: italic; }
+
+  /* DRAWER */
+  .drawer { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .drawer-toggle { width: 100%; background: none; border: none; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .drawer-toggle:hover { color: var(--text); }
+  .drawer-arrow { transition: transform 0.2s; }
+  .drawer-toggle.open .drawer-arrow { transform: rotate(180deg); }
+  .drawer-content { display: none; padding: 0 20px 24px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+  .drawer-content.open { display: block; }
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+  .method-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .method-item::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--item-color, var(--border)); }
+  .method-item.blue::before  { --item-color: #64a0d2; }
+  .method-item.red::before   { --item-color: var(--accent); }
+  .method-item.green::before { --item-color: var(--up); }
+  .method-item.warn::before  { --item-color: var(--warn); }
+  .method-item.muted::before { --item-color: var(--muted); }
+  .method-item strong { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--text); margin-bottom: 10px; text-transform: uppercase; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .method-tag { font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 600; letter-spacing: 0.06em; }
+  .method-tag.blue  { background: rgba(100,160,210,0.15); color: #64a0d2; }
+  .method-tag.green { background: rgba(34,197,94,0.12); color: var(--up); }
+  .method-tag.warn  { background: rgba(245,158,11,0.12); color: var(--warn); }
+  .method-tag.red   { background: rgba(204,43,43,0.12); color: var(--accent); }
+  .method-stat { display: inline-flex; align-items: baseline; gap: 5px; margin: 4px 0; }
+  .method-stat-num { font-family: var(--mono); font-size: 16px; font-weight: 600; }
+  .method-stat-label { font-size: 11px; color: var(--muted); }
+  .method-row { display: flex; gap: 16px; margin: 8px 0; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-logo">
+      <div class="header-logo-text">
+        <div class="header-logo-ta">T<span>A</span></div>
+        <div class="header-logo-services">Services</div>
+      </div>
+    </div>
+    <div class="header-titles">
+      <h1>10-Month DAT LTR Outlook</h1>
+      <span class="header-sub" id="headerSub"></span>
+    </div>
+  </div>
+  <span class="header-tag">PRICING ANALYTICS</span>
+</header>
+
+<main>
+
+  <!-- MONTHLY UPDATE PANEL -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);flex-shrink:0;">Monthly Update</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Forecast Origin Month</label>
+        <input id="monthInput" type="month" value="2026-03"
+          style="font-family:var(--mono);font-size:13px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 10px;width:160px;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Current DAT LTR</label>
+        <input id="ltrInput" type="number" step="0.01" value="9.10" placeholder="e.g. 9.10"
+          style="font-family:var(--mono);font-size:13px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 10px;width:120px;">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button onclick="fetchWHLSL().then(updateDashboard)"
+          style="font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;background:var(--accent);color:white;border:none;border-radius:4px;padding:8px 16px;cursor:pointer;">
+          Refresh WHLSL &amp; Update
+        </button>
+        <button onclick="updateDashboard()"
+          style="font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;background:var(--border);color:var(--text);border:none;border-radius:4px;padding:8px 16px;cursor:pointer;">
+          Update (use cached WHLSL)
+        </button>
+      </div>
+    </div>
+    <div style="font-size:11px;font-family:var(--mono);" id="fredStatus" style="color:var(--muted);">
+      Enter current LTR and click Update. Add FRED API key to auto-fetch WHLSL.
+    </div>
+  </div>
+
+  <!-- ANOMALY BANNER — shown first, most prominent -->
+  <div class="anomaly-banner" id="anomalyBanner">
+    <div class="anomaly-header">⚠ Elevated Uncertainty</div>
+    <div class="anomaly-lead" id="anomalyLead"></div>
+    <div class="anomaly-items" id="anomalyItems"></div>
+  </div>
+
+  <!-- MARKET SIGNAL BANNER — primary message -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px 24px;margin-bottom:0;">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">10-Month Market Signal</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div id="signalDirection" style="font-size:28px;font-weight:700;font-family:var(--mono);letter-spacing:-0.02em;"></div>
+      <div style="flex:1;min-width:200px;">
+        <div id="signalHeadline" style="font-size:14px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:4px;"></div>
+        <div id="signalSub" style="font-size:11px;color:var(--muted);line-height:1.5;"></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;">Planning Anchor</div>
+        <div id="signalAnchor" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text-dim);"></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">Treat as directional estimate, not an exact target</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">Current DAT LTR</div>
+      <div class="card-value" id="cardCurrentLTR"></div>
+      <div class="card-sub" id="cardCurrentSub"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Directional Call</div>
+      <div class="card-value" id="cardDirection"></div>
+      <div class="card-sub" id="cardDirectionSub"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Point Estimate <span style="font-size:9px;color:var(--muted);font-weight:400;">(planning anchor)</span></div>
+      <div class="card-value" id="cardForecastLTR"></div>
+      <div class="card-sub" id="cardForecastSub"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Confidence</div>
+      <div class="card-value" id="cardConfidence"></div>
+      <div class="confidence-bar" id="confDots"></div>
+      <div class="card-sub" id="cardConfSub"></div>
+    </div>
+  </div>
+
+  <!-- CONFIDENCE EXPLANATION -->
+  <div class="conf-explain" id="confExplain"></div>
+
+
+  <!-- CHART -->
+  <div class="chart-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">LTR History + 10-Month Forecast</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="blueRangeNote"></div>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div style="width:24px;height:2px;background:var(--text)"></div>
+          Actual LTR
+        </div>
+        <div class="legend-item">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--down)"></div>
+          Forecast
+        </div>
+        <div class="legend-item">
+          <div style="width:24px;height:8px;background:rgba(100,160,210,0.3);border-radius:2px"></div>
+          80% Forecast Range
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+
+    <!-- LIVE FORECAST BAR — clearly separated from chart -->
+    <div class="live-forecast-bar">
+      <div>
+        <div class="lf-label">Current Live Forecast</div>
+        <div class="lf-value" id="lfValue"></div>
+      </div>
+      <div class="lf-divider"></div>
+      <div>
+        <div class="lf-label">Forecast Origin</div>
+        <div class="lf-value" id="lfOrigin"></div>
+      </div>
+      <div class="lf-divider"></div>
+      <div>
+        <div class="lf-label">Target Month</div>
+        <div class="lf-value" id="lfTarget"></div>
+      </div>
+      <div class="lf-divider"></div>
+      <div>
+        <div class="lf-label" id="lfRangeLabel">Stress Range</div>
+        <div class="lf-value" id="lfRange"></div>
+      </div>
+      <div class="lf-divider"></div>
+      <div style="flex:1">
+        <div class="lf-note" id="lfNote"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <!-- REGIME CONTEXT PANEL — below chart, above validation -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px 24px;">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">How accuracy &amp; forecast range vary by market condition</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <thead>
+        <tr>
+          <th style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 0 10px 0;border-bottom:1px solid var(--border);">Condition</th>
+          <th style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);text-align:center;padding:0 0 10px 12px;border-bottom:1px solid var(--border);">LTR Range</th>
+          <th style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);text-align:center;padding:0 0 10px 12px;border-bottom:1px solid var(--border);">Dir. Accuracy</th>
+          <th style="font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);text-align:center;padding:0 0 10px 12px;border-bottom:1px solid var(--border);">Forecast Range Width</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:11px 0;border-bottom:1px solid var(--border);color:var(--up);font-weight:500;">Middle LTR <span style="color:var(--muted);font-weight:400;">(typical)</span></td>
+          <td style="padding:11px 12px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--text-dim);">3.83 – 4.58</td>
+          <td style="padding:11px 12px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--up);">89%</td>
+          <td style="padding:11px 12px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--text-dim);">~2.6 pts</td>
+        </tr>
+        <tr>
+          <td style="padding:11px 0;border-bottom:1px solid var(--border);color:var(--text-dim);">Low LTR <span style="color:var(--muted);">(soft market)</span></td>
+          <td style="padding:11px 12px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--text-dim);">below 3.82</td>
+          <td style="padding:11px 12px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--text-dim);">90%</td>
+          <td style="padding:11px 12px;border-bottom:1px solid var(--border);text-align:center;font-family:var(--mono);color:var(--text-dim);">~4.4 pts</td>
+        </tr>
+        <tr>
+          <td style="padding:11px 0;color:var(--warn);font-weight:500;" id="regimeHighLabel">High LTR <span style="color:var(--muted);font-weight:400;">(today · 9.10)</span></td>
+          <td style="padding:11px 12px;text-align:center;font-family:var(--mono);color:var(--warn);">above 4.58</td>
+          <td style="padding:11px 12px;text-align:center;font-family:var(--mono);color:var(--warn);">60%</td>
+          <td style="padding:11px 12px;text-align:center;font-family:var(--mono);color:var(--warn);">~5.8 pts</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-size:10px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-style:italic;">High-LTR conditions showed greater historical forecast error in the available validation sample (10 observations). The stress range is wide by design — the 60% directional accuracy is the more relevant reliability signal in this regime.</div>
+  </div>
+
+  <div class="bottom-row">
+
+    <!-- WHY PANEL — interactive regression equation -->
+    <div class="why-panel">
+      <div class="panel-title">How the Forecast is Built</div>
+      <div style="margin-top:14px;">
+
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:0.05em;text-transform:uppercase;">10-month regression equation</div>
+
+        <!-- Single equation: coefficients + variable names, then plugged-in values -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+
+          <!-- General form with coefficients -->
+          <div style="font-family:var(--mono);font-size:13px;line-height:1.6;">
+            <span style="color:var(--text-dim);">LTR</span>
+            <span style="color:var(--muted);"> = </span>
+            <span style="color:var(--text);" id="eqIntercept"></span>
+            <span style="color:var(--muted);"> + </span>
+            <span style="color:#64a0d2;" id="eqB1"></span>
+            <span style="color:#64a0d2;"> · LTR</span>
+            <span style="color:var(--muted);"> + </span>
+            <span style="color:var(--up);" id="eqB2"></span>
+            <span style="color:var(--up);"> · WHLSL(t−2)</span>
+          </div>
+
+          <!-- Divider -->
+          <div style="border-top:1px solid var(--border);"></div>
+
+          <!-- Plugged-in values -->
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.6;">
+            <span style="color:var(--muted);">= </span>
+            <span style="color:var(--text);" id="eqIc"></span>
+            <span style="color:var(--muted);"> + </span>
+            <span style="color:#64a0d2);" id="eqLcEq"></span>
+            <span style="color:var(--muted);"> + </span>
+            <span style="color:var(--up);" id="eqWcEq"></span>
+          </div>
+
+        </div>
+
+        <!-- Term breakdown -->
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;" id="termBars"></div>
+
+        <!-- Total -->
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;" id="eqTotalLabel">= Forecast LTR</span>
+          <span id="eqTotal" style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);"></span>
+        </div>
+
+        <div class="val-note" style="margin-top:10px;" id="eqValNote"></div>
+      </div>
+    </div>
+
+    <!-- VALIDATION PANEL -->
+    <div class="val-panel">
+      <div class="panel-title">Model Validation</div>
+      <div class="val-grid">
+        <div class="val-stat">
+          <div class="val-stat-num">79%</div>
+          <div class="val-stat-label">of the time the model correctly called whether LTR would go up or down over the next 10 months</div>
+        </div>
+        <div class="val-stat">
+          <div class="val-stat-num">6 of 10</div>
+          <div class="val-stat-label">correct directional calls in today's market type (High-LTR above 4.58) — lower reliability than normal conditions</div>
+        </div>
+        <div class="val-stat">
+          <div class="val-stat-num">29</div>
+          <div class="val-stat-label">real out-of-sample forecasts tested — each one made without knowing the future outcome</div>
+        </div>
+        <div class="val-stat">
+          <div class="val-stat-num">10 mo</div>
+          <div class="val-stat-label">how far ahead the model forecasts — enough lead time to adjust pricing strategy before the market shifts</div>
+        </div>
+      </div>
+      <div class="val-note">Model validation used leakage-free forecast origins from January 2023 through May 2025, with realized LTR outcomes observed through March 2026. LTR data sourced from DAT Freight &amp; Analytics via Ryan Transportation monthly reports.</div>
+    </div>
+
+  </div>
+
+  <!-- METHODOLOGY DRAWER -->
+  <div class="drawer">
+    <button class="drawer-toggle" onclick="toggleDrawer(this)">
+      <span>Methodology &amp; Statistical Validation</span><span class="drawer-arrow">▾</span>
+    </button>
+    <div class="drawer-content">
+      <div class="method-grid">
+
+        <div class="method-item blue">
+          <strong>Model Specification <span class="method-tag blue">OLS Regression</span></strong>
+          <code style="font-family:var(--mono);font-size:11px;background:var(--surface);padding:6px 10px;border-radius:3px;display:block;color:#64a0d2;margin-bottom:10px;">LTR(t+10) = α + β₁·LTR(t) + β₂·WHLSL(t−2)</code>
+          <b style="color:var(--text);">LTR</b> — current market tightness carries momentum forward.<br>
+          <b style="color:var(--text);">WHLSL lag-2</b> — wholesale durable goods sales (FRED: WHLSLRMPCIMSA), selected from a systematic macro indicator scan as the strongest leading signal at 2-month lag.<br><br>
+          Trained on the <b style="color:var(--text);">most recent 5 years of data</b> — updated monthly so the model always reflects current market behavior, not outdated patterns.
+        </div>
+
+        <div class="method-item blue">
+          <strong>Data Sources <span class="method-tag blue">Verified 2017–2026</span></strong>
+          <b style="color:var(--text);">LTR:</b> DAT Freight &amp; Analytics, sourced via Ryan Transportation monthly dry van reports. Data starts January 2017 — earlier history was excluded because it could not be verified.<br><br>
+          <b style="color:var(--text);">WHLSL:</b> U.S. wholesale durable goods sales, published monthly by the Federal Reserve (FRED: WHLSLRMPCIMSA). Used with a 2-month lag.
+        </div>
+
+        <div class="method-item green">
+          <strong>Test 1 — Walk-Forward Backtest <span class="method-tag green">Primary</span></strong>
+          <b style="color:var(--text);">Why:</b> We needed to know if the model actually works in the real world — not just on the same data it was trained on. The only honest way to test a forecast model is to pretend you're in the past, make a prediction without looking at the future, then check if you were right.<br><br>
+          <b style="color:var(--text);">How:</b> We ran 29 forecasts across January 2023 – May 2025. For each one, the model was only allowed to use data that would have existed at that moment in time. No cheating.<br><br>
+          <b style="color:var(--text);">What it showed:</b>
+          <div class="method-row" style="margin-top:8px;">
+            <div class="method-stat"><span class="method-stat-num" style="color:var(--up);">79.3%</span><span class="method-stat-label">of the time it correctly called up or down</span></div>
+            <div class="method-stat"><span class="method-stat-num" style="color:var(--up);">29</span><span class="method-stat-label">independent real-world tests</span></div>
+          </div><br>
+          <b style="color:var(--text);">What it means:</b> Nearly 8 out of 10 times, the model correctly identified whether freight demand would tighten or soften 10 months later. That is a meaningful edge for pricing decisions — even though the exact number won't always be right, knowing the direction usually is.
+        </div>
+
+        <div class="method-item green">
+          <strong>Test 2 — Clark-West Test <span class="method-tag green">Significance</span></strong>
+          <b style="color:var(--text);">Why:</b> Adding wholesale sales data to the model makes it more complex. We needed to prove that complexity is worth it — that WHLSL actually improves the forecast, and the improvement isn't just luck.<br><br>
+          <b style="color:var(--text);">How:</b> We built two versions of the model — one using only current LTR, one adding WHLSL. We ran both on the same 29 historical forecasts and compared how far off each one was. We then asked: if wholesale sales had no real effect, how likely would we be to see results this good just by chance?<br><br>
+          <b style="color:var(--text);">What it showed:</b> Less than 1% chance the improvement was luck.
+          <div class="method-row" style="margin-top:8px;">
+            <div class="method-stat"><span class="method-stat-num" style="color:var(--up);">p = 0.007</span><span class="method-stat-label">standard test</span></div>
+            <div class="method-stat"><span class="method-stat-num" style="color:var(--up);">p = 0.004</span><span class="method-stat-label">conservative version</span></div>
+          </div><br>
+          <b style="color:var(--text);">What it means:</b> A p-value below 0.05 means there's less than a 5% chance the improvement happened by random chance. Both versions cleared that bar — including the stricter version that accounts for overlapping forecast errors. <b style="color:var(--up);">WHLSL genuinely improves the forecast.</b>
+        </div>
+
+        <div class="method-item green">
+          <strong>Test 3 — Coefficient Stability <span class="method-tag green">Consistency</span></strong>
+          <b style="color:var(--text);">Why:</b> A model that works in one time period but falls apart in another isn't reliable. We needed to check whether the WHLSL relationship held consistently — or whether it was a fluke of a particular data window.<br><br>
+          <b style="color:var(--text);">How:</b> We retrained the model 29 times using different time periods and checked whether wholesale sales always pushed the forecast in the same direction — or whether it sometimes said one thing and sometimes said the opposite.<br><br>
+          <b style="color:var(--text);">What it showed:</b>
+          <div class="method-row" style="margin-top:8px;">
+            <div class="method-stat"><span class="method-stat-num" style="color:var(--up);">29/29</span><span class="method-stat-label">same direction every time</span></div>
+            <div class="method-stat"><span class="method-stat-num" style="color:var(--up);">27/29</span><span class="method-stat-label">statistically significant</span></div>
+          </div><br>
+          <b style="color:var(--text);">What it means:</b> In every single refit — across different markets, different years, different economic conditions — WHLSL pointed the same way. That consistency is strong evidence the relationship is real, not a coincidence.
+        </div>
+
+        <div class="method-item green">
+          <strong>Test 4 — Residual Diagnostics <span class="method-tag green">Integrity</span></strong>
+          <b style="color:var(--text);">Why:</b> Even a model that gets the direction right can have hidden problems — like consistently overestimating, underestimating, or being unreliable in specific market conditions. This test checks for those issues.<br><br>
+          <b style="color:var(--text);">How:</b> We looked at the model's errors across all 29 forecasts — checking for systematic bias, patterns in the mistakes, and whether accuracy varied by market regime.<br><br>
+          <b style="color:var(--text);">What it showed:</b><br>
+          · <b style="color:var(--text);">No significant bias</b> — the model doesn't systematically over- or under-predict (p = 0.111)<br>
+          · <b style="color:var(--text);">Errors are correlated</b> — but expected: a 10-month forecast naturally overlaps with the next month's forecast, so errors move together. Already corrected for in Test 2.<br>
+          · Accuracy by market type: <span style="color:var(--up);">Low LTR → 90%</span> · <span style="color:var(--up);">Middle LTR → 89%</span> · <span style="color:var(--warn);">High LTR → 60%</span><br><br>
+          <b style="color:var(--text);">What it means:</b> The model is well-behaved in normal conditions. Its main weakness is elevated markets like today — which is why the dashboard clearly flags lower confidence in High-LTR regimes.
+        </div>
+
+        <div class="method-item warn">
+          <strong>Forecast Range <span class="method-tag warn">Stress Range</span></strong>
+          <b style="color:var(--text);">Why:</b> A single point forecast (6.59) gives a false sense of precision. We needed a way to communicate the realistic spread of outcomes — and make it wider when the model has historically struggled, narrower when it hasn't.<br><br>
+          <b style="color:var(--text);">How:</b> We measured how wrong the model has been historically across all 29 forecasts, then scaled the range wider or narrower depending on the current market type. In High-LTR conditions the model's errors have been <b style="color:var(--warn);">1.29× larger than average</b>, so the range widens accordingly.<br><br>
+          <b style="color:var(--text);">What it means:</b> The blue band on the chart is not a guaranteed probability range — it's a <b style="color:var(--warn);">planning zone</b> showing where LTR has historically landed in comparable situations. In today's High-LTR environment it covered all 10 comparable historical outcomes, but the sample is small and the same data was used to build it, so treat it as a guide, not a guarantee.
+        </div>
+
+        <div class="method-item red">
+          <strong>Known Limitations <span class="method-tag red">Caveats</span></strong>
+          <b style="color:var(--accent);">We're slightly outside validated territory.</b> Today's LTR of 9.10 is above the highest level the model was validated on (8.84). The model is extrapolating — directional signal may still hold, but the point estimate is less reliable.<br><br>
+          <b style="color:var(--accent);">Small sample in today's market type.</b> Only 10 of 29 test forecasts came from High-LTR conditions. The 60% accuracy figure is real but uncertain — with 10 observations, even a small change in outcomes would move that number significantly.<br><br>
+          <b style="color:var(--accent);">Surprises aren't modeled.</b> Tariff changes, severe weather, geopolitical events — these aren't in the model. The 2025 freight spike was a good example: the model missed it because no macro indicator predicted it in advance.<br><br>
+          <b style="color:var(--accent);">6.59 is a direction, not a target.</b> The model's proven value is telling you which way the market is heading — not the exact number it will land on.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ─── UPDATE THIS OBJECT EACH MONTH (output by generate_forecast.R) ───────────
+// ─── MODEL PARAMETERS (fixed coefficients from R validation) ─────────────────
+// These are the median coefficients from 29 rolling-window fits.
+// Update these values if you re-run the full R validation suite.
+const MODEL = {
+  intercept:  4.7038,
+  betaLTR:    0.1847,
+  betaWHLSL: -0.6692,
+  horizon:    10,
+  // Regime cutoffs from backtest (frozen)
+  lowCutoff:  3.824,
+  highCutoff: 4.582,
+  // Validation max for High-LTR regime
+  highRegimeValidationMax: 8.84,
+  // Historical LTR range from training data
+  historicalLTRMin: 2.25,
+  historicalLTRMax: 11.11,
+  historicalMaxChange: 8.16,
+  // Regime RMSE scale factors
+  globalRMSE: 1.801,
+  highRMSE:   2.323,
+  middleRMSE: 1.032,
+  lowRMSE:    1.749,
+  // Global empirical error bounds (10th/90th percentile)
+  errorP10: -1.187,
+  errorP90:  3.695
+};
+
+// ─── FRED API KEY ─────────────────────────────────────────────────────────────
+// Get a free key at https://fred.stlouisfed.org/docs/api/api_key.html
+const FRED_API_KEY = "1265056fe2b2618857fb801833a03cfb";
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let appState = {
+  currentLTR: null,
+  whlslValues: [],  // recent monthly WHLSL values
+  originDate: null,
+  ready: false
+};
+
+// ─── COMPUTE FORECAST FROM INPUTS ────────────────────────────────────────────
+function computeForecast(ltr, whlsl_lag2) {
+  const forecast = MODEL.intercept + MODEL.betaLTR * ltr + MODEL.betaWHLSL * whlsl_lag2;
+
+  // Regime classification
+  const regime = ltr <= MODEL.lowCutoff ? "Low"
+               : ltr <= MODEL.highCutoff ? "Middle"
+               : "High";
+
+  // Regime-adjusted stress range
+  const regimeRMSE = regime === "High" ? MODEL.highRMSE
+                   : regime === "Middle" ? MODEL.middleRMSE
+                   : MODEL.lowRMSE;
+  const scale = regimeRMSE / MODEL.globalRMSE;
+  const lower80 = forecast + MODEL.errorP10 * scale;
+  const upper80 = forecast + MODEL.errorP90 * scale;
+
+  // Origin and target dates
+  const now = new Date(appState.originDate);
+  const target = new Date(now);
+  target.setMonth(target.getMonth() + MODEL.horizon);
+
+  // Anomaly flags
+  const aboveHighRegimeValidationMax = ltr > MODEL.highRegimeValidationMax;
+  const outOfHistoricalRange = ltr < MODEL.historicalLTRMin || ltr > MODEL.historicalLTRMax;
+  const largeMoveFlag = Math.abs(forecast - ltr) > MODEL.historicalMaxChange;
+
+  return {
+    originDate: appState.originDate,
+    targetDate: target.toISOString().slice(0, 10).replace(/(\d{4})-(\d{2})-(\d{2})/, '$1-$2-01'),
+    currentLTR: ltr,
+    forecastLTR: Math.round(forecast * 100) / 100,
+    lower80: Math.round(lower80 * 100) / 100,
+    upper80: Math.round(upper80 * 100) / 100,
+    currentWHLSL: whlsl_lag2,
+    currentLTRRegime: regime,
+    historicalMedianIntervalWidth: 4.74,
+    historicalP75IntervalWidth: 5.20,
+    historicalLTRMin: MODEL.historicalLTRMin,
+    historicalLTRMax: MODEL.historicalLTRMax,
+    historicalMaxChange: MODEL.historicalMaxChange,
+    interceptContribution: MODEL.intercept,
+    currentLTRContribution: MODEL.betaLTR * ltr,
+    whlslContribution: MODEL.betaWHLSL * whlsl_lag2,
+    outOfHistoricalRange,
+    largeMoveFlag,
+    wideIntervalFlag: false,
+    aboveHighRegimeValidationMax
+  };
+}
+
+// ─── FETCH WHLSL FROM FRED ────────────────────────────────────────────────────
+async function fetchWHLSL() {
+  if (FRED_API_KEY === "YOUR_FRED_API_KEY_HERE") {
+    document.getElementById("fredStatus").textContent = "⚠ Add your free FRED API key to enable auto-fetch.";
+    document.getElementById("fredStatus").style.color = "var(--warn)";
+    return null;
+  }
+  try {
+    document.getElementById("fredStatus").textContent = "Fetching WHLSL from FRED...";
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=WHLSLRMPCIMSA&api_key=${FRED_API_KEY}&file_type=json&sort_order=desc&limit=6`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const obs = data.observations.filter(o => o.value !== ".");
+    appState.whlslValues = obs.map(o => ({ date: o.date, value: parseFloat(o.value) }));
+    document.getElementById("fredStatus").textContent =
+      `✓ WHLSL loaded — latest: ${obs[0].value}% (${obs[0].date})`;
+    document.getElementById("fredStatus").style.color = "var(--up)";
+    return appState.whlslValues;
+  } catch(e) {
+    document.getElementById("fredStatus").textContent = "⚠ Could not reach FRED API. Check your API key or network.";
+    document.getElementById("fredStatus").style.color = "var(--warn)";
+    return null;
+  }
+}
+
+// ─── MAIN UPDATE FUNCTION ─────────────────────────────────────────────────────
+function updateDashboard() {
+  const ltrInput = parseFloat(document.getElementById("ltrInput").value);
+  const monthInput = document.getElementById("monthInput").value;
+  if (isNaN(ltrInput) || !monthInput) return;
+
+  appState.currentLTR = ltrInput;
+  appState.originDate = monthInput + "-01";
+
+  // Get WHLSL lag-2 (2 months before origin)
+  let whlsl_lag2 = null;
+  if (appState.whlslValues.length >= 3) {
+    // Find value from ~2 months before origin
+    const originMs = new Date(appState.originDate).getTime();
+    const sorted = [...appState.whlslValues].sort((a,b) => new Date(b.date) - new Date(a.date));
+    // Pick the 3rd most recent (lag-2)
+    whlsl_lag2 = sorted[2] ? sorted[2].value : sorted[sorted.length-1].value;
+  } else {
+    // Fallback to last known value from static object
+    whlsl_lag2 = -0.30;
+    document.getElementById("fredStatus").textContent += " · Using cached WHLSL lag-2 value.";
+  }
+
+  const f = computeForecast(ltrInput, whlsl_lag2);
+  window.latestForecast = f;
+  render();
+  if (window.mainChartInstance) { window.mainChartInstance.destroy(); }
+  renderChart();
+}
+
+// Placeholder latestForecast for initial render
+const latestForecast = {
+  originDate: "2026-03-01",
+  targetDate: "2027-01-01",
+  currentLTR: 9.10,
+  forecastLTR: 6.59,
+  lower80: 5.57,
+  upper80: 11.36,
+  currentWHLSL: -0.30,
+  currentLTRRegime: "High",
+  historicalMedianIntervalWidth: 4.74,
+  historicalP75IntervalWidth: 5.20,
+  historicalLTRMin: 2.25,
+  historicalLTRMax: 11.11,
+  historicalMaxChange: 8.16,
+  interceptContribution: 4.70,
+  currentLTRContribution: 1.68,
+  whlslContribution: 0.20,
+  outOfHistoricalRange: false,
+  largeMoveFlag: false,
+  wideIntervalFlag: false,
+  aboveHighRegimeValidationMax: true
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Historical actual LTR levels by target month (from walk-forward backtest)
+// month = the target date (10 months after the forecast origin)
+// actualLTR = the real DAT dry van LTR that month
+const historicalData = [
+  { month: "Nov 2023", actualLTR: 3.20 },
+  { month: "Dec 2023", actualLTR: 4.37 },
+  { month: "Jan 2024", actualLTR: 4.98 },
+  { month: "Feb 2024", actualLTR: 3.19 },
+  { month: "Mar 2024", actualLTR: 3.59 },
+  { month: "Apr 2024", actualLTR: 3.84 },
+  { month: "May 2024", actualLTR: 4.77 },
+  { month: "Jun 2024", actualLTR: 5.23 },
+  { month: "Jul 2024", actualLTR: 4.47 },
+  { month: "Aug 2024", actualLTR: 4.15 },
+  { month: "Sep 2024", actualLTR: 3.92 },
+  { month: "Oct 2024", actualLTR: 4.60 },
+  { month: "Nov 2024", actualLTR: 4.39 },
+  { month: "Dec 2024", actualLTR: 6.14 },
+  { month: "Jan 2025", actualLTR: 7.18 },
+  { month: "Feb 2025", actualLTR: 4.73 },
+  { month: "Mar 2025", actualLTR: 4.82 },
+  { month: "Apr 2025", actualLTR: 4.48 },
+  { month: "May 2025", actualLTR: 5.78 },
+  { month: "Jun 2025", actualLTR: 5.79 },
+  { month: "Jul 2025", actualLTR: 6.46 },
+  { month: "Aug 2025", actualLTR: 5.81 },
+  { month: "Sep 2025", actualLTR: 6.53 },
+  { month: "Oct 2025", actualLTR: 6.13 },
+  { month: "Nov 2025", actualLTR: 5.55 },
+  { month: "Dec 2025", actualLTR: 9.02 },
+  { month: "Jan 2026", actualLTR: 8.23 },
+  { month: "Feb 2026", actualLTR: 9.13 }
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmtDate(isoStr) {
+  const d = new Date(isoStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+function sign(n) { return n >= 0 ? "+" : ""; }
+function fmt(n, d=2) { return n.toFixed(d); }
+
+// ── ANOMALY DETECTION ─────────────────────────────────────────────────────────
+function getAnomalyWarnings(f) {
+  const change = Math.abs(f.forecastLTR - f.currentLTR);
+  const width  = f.upper80 - f.lower80;
+  const warnings = [];
+  if (f.currentLTR > f.historicalLTRMax)
+    warnings.push(`Current LTR (${fmt(f.currentLTR)}) exceeds the model's historical training range (max observed: ${fmt(f.historicalLTRMax)}). The model is extrapolating beyond conditions it was trained on.`);
+  if (f.currentLTR < f.historicalLTRMin)
+    warnings.push(`Current LTR (${fmt(f.currentLTR)}) is below the model's historical training range (min observed: ${fmt(f.historicalLTRMin)}). Forecast reliability is reduced.`);
+  if (f.aboveHighRegimeValidationMax)
+    warnings.push(`Current LTR (${fmt(f.currentLTR)}) is above the highest forecast-origin LTR seen during model validation (8.84). High-regime uncertainty is already elevated — treat this forecast as directional guidance rather than a precise estimate.`);
+  if (change > f.historicalMaxChange)
+    warnings.push(`Projected 10-month change of ${fmt(change)} points exceeds the largest move seen in validation (${fmt(f.historicalMaxChange)} points).`);
+  if (f.wideIntervalFlag)
+    warnings.push(`The forecast range is unusually wide (${fmt(width)} vs. historical 75th percentile of ${fmt(f.historicalP75IntervalWidth)}). Use the directional call, not the point estimate, for decisions.`);
+  return warnings;
+}
+
+// ── CONFIDENCE ────────────────────────────────────────────────────────────────
+function calcConfidence(f, hasAnomalies) {
+  const regimeScore =
+    f.currentLTRRegime === "High" ? 1 :
+    f.currentLTRRegime === "Middle" ? 3 :
+    2;
+  const width          = f.upper80 - f.lower80;
+  const intervalScore  = width <= f.historicalMedianIntervalWidth ? 3 : width <= f.historicalP75IntervalWidth ? 2 : 1;
+  let score = (regimeScore + intervalScore) / 2;
+  if (hasAnomalies) score = Math.min(score, 1.5);
+  const label  = score >= 2.5 ? "Higher" : score >= 1.75 ? "Moderate" : "Moderate-Low";
+  const dots   = score >= 2.5 ? 3 : score >= 1.75 ? 2 : 1;
+  const isWarn = hasAnomalies || label === "Moderate-Low";
+  const sub    = hasAnomalies ? "Anomaly active — see warning above"
+               : f.currentLTRRegime === "High"   ? "High LTR — model was less reliable here in recent data (60% dir. accuracy)"
+               : f.currentLTRRegime === "Middle" ? "Mid-range LTR regime"
+               : "Low-LTR regime — wider historical error";
+  const detail = hasAnomalies
+    ? "Current LTR is above the highest High-LTR forecast-origin level observed during validation. The directional forecast may still be useful but the point estimate should not be relied upon for precise decisions."
+    : label === "Higher"
+    ? "The model has been most reliable when LTR is in this range historically, and the forecast interval is relatively narrow."
+    : label === "Moderate"
+    ? "The model has shown average reliability in this LTR range. Use the directional call as a signal, not a precise number."
+    : "The model is in a lower-reliability zone — either LTR is at an unusual level, the forecast interval is wide, or both. Treat as directional guidance only.";
+  return { label, dots, sub, detail, isWarn };
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const f = (window.latestForecast || latestForecast);
+  const change    = f.forecastLTR - f.currentLTR;
+  const changePct = (change / f.currentLTR * 100);
+  const rising    = change >= 0;
+  const warnings  = getAnomalyWarnings(f);
+  const hasAnom   = warnings.length > 0;
+  const conf      = calcConfidence(f, hasAnom);
+
+  // Header
+  document.getElementById("headerSub").textContent =
+    `Forecast origin: ${fmtDate(f.originDate)} → Target: ${fmtDate(f.targetDate)}`;
+
+  // Anomaly banner
+  const banner = document.getElementById("anomalyBanner");
+  if (hasAnom) {
+    banner.classList.add("visible");
+    document.getElementById("anomalyLead").textContent =
+      "Current LTR is above the highest High-LTR level observed during validation. Directional signal may be useful, but point-estimate reliability is reduced.";
+    document.getElementById("anomalyItems").innerHTML =
+      warnings.map(w => `<div class="anomaly-item">• ${w}</div>`).join("");
+  }
+
+  // Card 1 — Current LTR
+  document.getElementById("cardCurrentLTR").textContent = fmt(f.currentLTR);
+  document.getElementById("cardCurrentSub").textContent = `As of ${fmtDate(f.originDate)}`;
+
+  // ── MARKET SIGNAL BANNER ─────────────────────────────────
+  const dirWord  = rising ? "UP" : "DOWN";
+  const dirColor = rising ? "var(--up)" : "var(--down)";
+  const dirArrow = rising ? "↑" : "↓";
+  document.getElementById("signalDirection").textContent  = dirArrow + " " + dirWord;
+  document.getElementById("signalDirection").style.color  = dirColor;
+  document.getElementById("signalHeadline").textContent   =
+    rising
+      ? `LTR likely to rise from ${fmt(f.currentLTR)} toward ${fmt(f.forecastLTR)} by ${fmtDate(f.targetDate)}.`
+      : `LTR likely to decline from ${fmt(f.currentLTR)} toward ${fmt(f.forecastLTR)} by ${fmtDate(f.targetDate)}.`;
+  const regimeDirAcc = f.currentLTRRegime === "High" ? "6 of 10 (60%)"
+                     : f.currentLTRRegime === "Middle" ? "8 of 9 (89%)"
+                     : "9 of 10 (90%)";
+  document.getElementById("signalSub").textContent =
+    `${f.currentLTRRegime}-LTR conditions historically produced ${regimeDirAcc} directional accuracy. ` +
+    `Stress range: ${fmt(f.lower80)} – ${fmt(f.upper80)}.`;
+  document.getElementById("signalAnchor").textContent     = fmt(f.forecastLTR);
+
+  // ── DIRECTION CARD ───────────────────────────────────────
+  const dirEl = document.getElementById("cardDirection");
+  dirEl.textContent  = dirArrow + " " + dirWord;
+  dirEl.className    = "card-value " + (rising ? "up" : "down");
+  document.getElementById("cardDirectionSub").textContent =
+    `${regimeDirAcc} correct in comparable ${f.currentLTRRegime}-LTR periods`;
+
+  // Card 3 — Point estimate (planning anchor)
+  const fEl = document.getElementById("cardForecastLTR");
+  fEl.textContent = fmt(f.forecastLTR);
+  fEl.className = "card-value";
+  document.getElementById("cardForecastSub").textContent =
+    `Target: ${fmtDate(f.targetDate)} · Stress range: ${fmt(f.lower80)} – ${fmt(f.upper80)}`;
+
+  // Card 4 — Confidence
+  const confEl = document.getElementById("cardConfidence");
+  confEl.textContent = conf.label;
+  confEl.className = conf.isWarn ? "card-value warn" : "card-value accent";
+  document.getElementById("confDots").innerHTML = [1,2,3].map(i =>
+    `<div class="conf-dot ${i <= conf.dots ? (conf.isWarn ? "filled-warn" : "filled") : ""}"></div>`
+  ).join("");
+  document.getElementById("cardConfSub").textContent = conf.sub;
+
+  // Confidence explanation
+  document.getElementById("confExplain").innerHTML =
+    `<strong style="color:var(--text-dim)">What does this mean?</strong> ` +
+    `Confidence tells you how reliable the model has historically been in situations similar to today — based on where LTR currently sits and how wide the forecast range is. ` +
+    `A higher confidence means the model's past directional calls in this market environment were more often correct. ` +
+    `It does <em>not</em> mean the forecast will definitely be right.`;
+
+  // Live forecast bar
+  const rangeLabel =
+    f.currentLTRRegime === "High" ? "High-LTR stress range" :
+    f.currentLTRRegime === "Middle" ? "Typical forecast range" :
+    "Elevated-uncertainty range";
+  document.getElementById("lfValue").textContent =
+    `${fmt(f.forecastLTR)} (${sign(change)}${fmt(change)})`;
+  document.getElementById("lfOrigin").textContent = fmtDate(f.originDate);
+  document.getElementById("lfTarget").textContent = fmtDate(f.targetDate);
+  document.getElementById("lfRange").textContent  = `${fmt(f.lower80)} – ${fmt(f.upper80)} (${rangeLabel})`;
+  document.getElementById("lfNote").textContent = "";
+
+  // ── DYNAMIC TEXT — previously hardcoded ──────────────────
+  const targetStr = fmtDate(f.targetDate);
+  const originStr = fmtDate(f.originDate);
+  const regimeStr = f.currentLTRRegime;
+
+  // Blue range note under chart
+  document.getElementById("blueRangeNote").innerHTML =
+    `<span style="color:#64a0d2;font-weight:500;">What does the blue range mean?</span> ` +
+    `It shows the span of plausible ${targetStr} LTR outcomes based on how much the model has historically ` +
+    `missed in elevated-LTR conditions. Historically, this range contained 10 of 10 available High-LTR ` +
+    `backtest outcomes. However, the same historical cases helped build this range, so it should not be ` +
+    `read as a guaranteed percentage. Treat it as a broad planning zone, not a guaranteed interval.`;
+
+  // Regime table — highlight current regime row
+  document.getElementById("regimeHighLabel").innerHTML =
+    `High LTR <span style="color:var(--muted);font-weight:400;">(today · ${fmt(f.currentLTR)})</span>`;
+
+  // Equation total label
+  document.getElementById("eqTotalLabel").textContent = `= Forecast LTR (${targetStr})`;
+
+  // Live forecast bar — stress range label
+  document.getElementById("lfRangeLabel").textContent =
+    `${regimeStr}-LTR Stress Range`;
+
+  // Val note under equation
+  document.getElementById("eqValNote").textContent =
+    `Higher wholesale sales → lower LTR 10 months later (negative coefficient, consistent across all 29 model fits). ` +
+    `Currently WHLSL is ${f.currentWHLSL >= 0 ? "positive" : "negative"} (${sign(f.currentWHLSL)}${fmt(f.currentWHLSL,2)}%), so its pull on the forecast is ${Math.abs(f.whlslContribution) < 0.3 ? "small" : "meaningful"}.`;
+  const ic = f.interceptContribution;
+  const lc = f.currentLTRContribution;
+  const wc = f.whlslContribution;
+  const b1 = (lc / f.currentLTR).toFixed(4);
+  const b2 = (wc / f.currentWHLSL).toFixed(4);
+
+  // General form with coefficients
+  document.getElementById("eqIntercept").textContent = fmt(ic);
+  document.getElementById("eqB1").textContent = b1;
+  document.getElementById("eqB2").textContent = b2;
+
+  // Plugged-in values
+  document.getElementById("eqIc").textContent = fmt(ic);
+  document.getElementById("eqLcEq").textContent = `${b1} × ${fmt(f.currentLTR)} = ${sign(lc)}${fmt(lc)}`;
+  document.getElementById("eqWcEq").textContent = `${b2} × (${sign(f.currentWHLSL)}${fmt(f.currentWHLSL,2)}%) = ${sign(wc)}${fmt(wc)}`;
+  document.getElementById("eqTotal").textContent = fmt(f.forecastLTR);
+
+  // Term bars
+  const terms = [
+    { label: "Intercept", desc: "model baseline", value: ic, color: "var(--muted)" },
+    { label: "Current LTR × coefficient", desc: `${fmt(f.currentLTR)} × ${b1}`, value: lc, color: "#64a0d2" },
+    { label: "WHLSL × coefficient", desc: `${sign(f.currentWHLSL)}${fmt(f.currentWHLSL,2)}% × ${b2}`, value: wc, color: "var(--up)" }
+  ];
+  const maxVal = Math.max(...terms.map(t => Math.abs(t.value)));
+  document.getElementById("termBars").innerHTML = terms.map(t => {
+    const w = Math.round((Math.abs(t.value) / maxVal) * 120);
+    return `<div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:160px;flex-shrink:0;">
+        <div style="font-size:11px;color:var(--text-dim);">${t.label}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);">${t.desc}</div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;gap:8px;">
+        <div style="height:6px;width:${w}px;background:${t.color};border-radius:3px;opacity:0.8;"></div>
+        <span style="font-family:var(--mono);font-size:12px;color:${t.color};">${sign(t.value)}${fmt(t.value)}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("eqTotal").textContent = fmt(f.forecastLTR);
+}
+
+// ── CHART ─────────────────────────────────────────────────────────────────────
+function renderChart() {
+  const f = (window.latestForecast || latestForecast);
+
+  // Build labels: all historical months + gap months to target + target
+  const histLabels  = historicalData.map(d => d.month);
+  const histActuals = historicalData.map(d => d.actualLTR);
+
+  const gapMonths = [
+    "Apr 2026", "May 2026", "Jun 2026", "Jul 2026", "Aug 2026",
+    "Sep 2026", "Oct 2026", "Nov 2026", "Dec 2026"
+  ];
+
+  const allLabels = [
+    ...histLabels,
+    fmtDate(f.originDate),
+    ...gapMonths,
+    fmtDate(f.targetDate)
+  ];
+
+  const n = allLabels.length;
+  const originIdx = histLabels.length;
+  const targetIdx = n - 1;
+
+  const actualData = [
+    ...histActuals,
+    f.currentLTR,
+    ...new Array(gapMonths.length).fill(null),
+    null
+  ];
+
+  const forecastData = new Array(n).fill(null);
+  forecastData[originIdx] = f.currentLTR;
+  forecastData[targetIdx] = f.forecastLTR;
+
+  new Chart(document.getElementById("mainChart").getContext("2d"), {
+    type: "line",
+    data: {
+      labels: allLabels,
+      datasets: [
+        // Actual LTR history
+        { label: "Actual LTR", data: actualData,
+          borderColor: "#e5e7eb", borderWidth: 2,
+          pointRadius: ctx => ctx.dataIndex === originIdx ? 6 : 3,
+          pointBackgroundColor: ctx => ctx.dataIndex === originIdx ? "#f59e0b" : "#e5e7eb",
+          tension: 0.3, fill: false, spanGaps: false },
+
+        // Dashed line from origin to forecast point
+        { label: "Forecast Path", data: forecastData,
+          borderColor: "#ef4444", borderWidth: 2, borderDash: [6, 4],
+          pointRadius: ctx => ctx.dataIndex === targetIdx ? 8 : 4,
+          pointBackgroundColor: ctx => ctx.dataIndex === targetIdx ? "#ef4444" : "#f59e0b",
+          pointStyle: ctx => ctx.dataIndex === targetIdx ? "circle" : "circle",
+          tension: 0, fill: false, spanGaps: true }
+      ]
+    },
+    plugins: [{
+      id: "bandAndToday",
+      afterDraw(chart) {
+        const ctx2 = chart.ctx;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+
+        // — Confidence band: filled rect at forecast point —
+        const xTarget = xScale.getPixelForValue(targetIdx);
+        const yUpper  = yScale.getPixelForValue(f.upper80);
+        const yLower  = yScale.getPixelForValue(f.lower80);
+        const bandW   = 24;
+        const bandX   = xTarget - bandW / 2;
+        ctx2.save();
+        ctx2.fillStyle = "rgba(100,160,210,0.18)";
+        ctx2.fillRect(bandX, yUpper, bandW, yLower - yUpper);
+        ctx2.strokeStyle = "rgba(100,160,210,0.55)";
+        ctx2.lineWidth = 1;
+        ctx2.setLineDash([]);
+        ctx2.strokeRect(bandX, yUpper, bandW, yLower - yUpper);
+        ctx2.fillStyle = "#64a0d2";
+        ctx2.font = "9px IBM Plex Mono";
+        ctx2.textAlign = "center";
+        ctx2.fillText(f.upper80.toFixed(1), bandX + bandW / 2, yUpper - 4);
+        ctx2.fillText(f.lower80.toFixed(1), bandX + bandW / 2, yLower + 11);
+        ctx2.restore();
+
+        // — TODAY vertical line —
+        const xOrigin = xScale.getPixelForValue(originIdx);
+        ctx2.save();
+        ctx2.beginPath();
+        ctx2.moveTo(xOrigin, yScale.top);
+        ctx2.lineTo(xOrigin, yScale.bottom);
+        ctx2.strokeStyle = "rgba(245,158,11,0.5)";
+        ctx2.lineWidth = 1;
+        ctx2.setLineDash([4, 4]);
+        ctx2.stroke();
+        ctx2.fillStyle = "#f59e0b";
+        ctx2.font = "10px IBM Plex Mono";
+        ctx2.textAlign = "left";
+        ctx2.setLineDash([]);
+        ctx2.fillText("TODAY", xOrigin + 6, yScale.top + 14);
+        ctx2.restore();
+      }
+    }],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#132031", borderColor: "#1f3348", borderWidth: 1,
+          titleColor: "#9ca3af", bodyColor: "#e5e7eb",
+          titleFont: { family: "IBM Plex Mono", size: 11 },
+          bodyFont:  { family: "IBM Plex Mono", size: 12 },
+          filter: item => !item.dataset.label.startsWith("_"),
+          callbacks: {
+            label: ctx => {
+              if (ctx.parsed.y === null) return null;
+              const base = `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}`;
+              if (ctx.dataset.label === "Forecast Path" && ctx.dataIndex === targetIdx)
+                return [`${base}`, `High-LTR stress range: ${fmt(f.lower80)} – ${fmt(f.upper80)}`];
+              return base;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: "#1f3348" },
+             ticks: { color: "#8aafc2", font: { family: "IBM Plex Mono", size: 10 }, maxRotation: 45 } },
+        y: { grid: { color: "#1f3348" },
+             min: Math.floor(Math.min(...histActuals, f.lower80) - 0.5),
+             max: Math.ceil(Math.max(...histActuals, f.currentLTR, f.upper80) + 1.0),
+             ticks: { color: "#8aafc2", font: { family: "IBM Plex Mono", size: 10 },
+                      callback: v => v.toFixed(1) },
+             title: { display: true, text: "DAT Dry Van Load-to-Truck Ratio",
+                      color: "#8aafc2", font: { family: "IBM Plex Mono", size: 10 } } }
+      }
+    }
+  });
+}
+
+function toggleDrawer(btn) {
+  btn.classList.toggle("open");
+  btn.nextElementSibling.classList.toggle("open");
+}
+
+// Store chart instance so we can destroy on re-render
+window.mainChartInstance = null;
+const _origRenderChart = renderChart;
+renderChart = function() {
+  if (window.mainChartInstance) {
+    window.mainChartInstance.destroy();
+    window.mainChartInstance = null;
+  }
+  _origRenderChart();
+};
+
+// Override Chart constructor to capture instance
+const _OrigChart = Chart;
+Chart = function(...args) {
+  const instance = new _OrigChart(...args);
+  window.mainChartInstance = instance;
+  return instance;
+};
+Chart.prototype = _OrigChart.prototype;
+Object.assign(Chart, _OrigChart);
+
+// Use window.latestForecast if set (from updateDashboard), else static object
+function getF() { return window.latestForecast || latestForecast; }
+const _origRender = render;
+render = function() {
+  const saved = window.latestForecast;
+  if (saved) window.latestForecast = saved;
+  _origRender();
+};
+
+render();
+renderChart();
+
+// Auto-fetch WHLSL from FRED on page load
+window.addEventListener('load', () => {
+  fetchWHLSL().then(vals => {
+    if (vals) {
+      document.getElementById("fredStatus").textContent += " · Enter current LTR and click Update.";
+    }
+  });
+});
+</script>
+</body>
+</html>
